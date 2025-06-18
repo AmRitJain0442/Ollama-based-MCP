@@ -3,6 +3,7 @@
 
 const axios = require('axios');
 const readline = require('readline');
+const today = new Date();
 
 // Configuration
 const OLLAMA_URL = 'http://localhost:11434/api/generate';
@@ -61,6 +62,7 @@ When the user asks you to do something, analyze their request and respond with a
 3. "explanation": A brief explanation of what you're doing
 
 For dates and times:
+-Today is ${today.toISOString().split('T')[0]}.Use this as reference for any date calculations.
 - Convert natural language like "tomorrow at 2pm" to ISO format
 - If no time is specified, use 9am as default
 - If no end time is specified, add 1 hour to start time
