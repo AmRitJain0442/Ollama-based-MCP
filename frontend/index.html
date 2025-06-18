@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    
+    <!-- Our custom CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color : rgb(189, 189, 189);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #calendar {
+            margin: 20px 0;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* Tag styles */
+        .tags-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .tag-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag-checkbox input {
+            width: auto;
+        }
+
+        /* Button styles */
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+        }
+
+        .delete-btn:hover {
+            background-color: #da190b;
+        }
+
+        .cancel-btn {
+            background-color: #666;
+        }
+
+        .cancel-btn:hover {
+            background-color: #555;
+        }
+
+        /* Color picker */
+        input[type="color"] {
+            height: 40px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Scheduler</h1>
+        <div id="calendar"></div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Create Task</h2>
+            <form id="taskForm">
+                <input type="hidden" id="taskId">
+                
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="start">Start Date/Time:</label>
+                    <input type="datetime-local" id="start" name="start" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="end">End Date/Time:</label>
+                    <input type="datetime-local" id="end" name="end" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tags:</label>
+                    <div class="tags-container">
+                        <div class="tag-checkbox">
+                            <input type="checkbox" id="tag-work" value="work">
+                            <label for="tag-work">Work</label>
+                        </div>
+                        <div class="tag-checkbox">
+                            <input type="checkbox" id="tag-personal" value="personal">
+                            <label for="tag-personal">Personal</label>
+                        </div>
+                        <div class="tag-checkbox">
+                            <input type="checkbox" id="tag-family" value="family">
+                            <label for="tag-family">Family</label>
+                        </div>
+                        <div class="tag-checkbox">
+                            <input type="checkbox" id="tag-health" value="health">
+                            <label for="tag-health">Health</label>
+                        </div>
+                        <div class="tag-checkbox">
+                            <input type="checkbox" id="tag-other" value="other">
+                            <label for="tag-other">Other</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="color">Color:</label>
+                    <input type="color" id="color" name="color" value="#3788d8">
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit">Save Task</button>
+                    <button type="button" class="delete-btn" id="deleteBtn" style="display:none;">Delete</button>
+                    <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    
+    <!-- Our custom JavaScript -->
+    <script>
+        // API base URL
+        const API_URL = 'http://localhost:5000/api/tasks';
+        
+        // Modal elements
+        const modal = document.getElementById('taskModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const taskForm = document.getElementById('taskForm');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const closeBtn = document.querySelector('.close');
+        
+        // Calendar instance
+        let calendar;
+        
+        // Initialize calendar when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                editable: true,
+                selectable: true,
+                selectMirror: true,
+                
+                // When user clicks on a date
+                select: function(arg) {
+                    openModal('create', null, arg.start, arg.end);
+                },
+                
+                // When user clicks on an event
+                eventClick: function(info) {
+                    openModal('edit', info.event);
+                },
+                
+                // When user drags an event
+                eventDrop: function(info) {
+                    updateTaskDates(info.event);
+                },
+                
+                // When user resizes an event
+                eventResize: function(info) {
+                    updateTaskDates(info.event);
+                },
+                
+                // Load events from API
+                events: fetchTasks
+            });
+            
+            calendar.render();
+        });
+        
+        // Fetch tasks from API
+        async function fetchTasks() {
+            try {
+                const response = await fetch(API_URL);
+                const tasks = await response.json();
+                
+                // Convert tasks to FullCalendar event format
+                return tasks.map(task => ({
+                    id: task._id,
+                    title: task.title,
+                    start: task.start,
+                    end: task.end,
+                    color: task.color,
+                    extendedProps: {
+                        description: task.description,
+                        tags: task.tags
+                    }
+                }));
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                return [];
+            }
+        }
+        
+        // Open modal for creating/editing tasks
+        function openModal(mode, event, start, end) {
+            modal.style.display = 'block';
+            
+            if (mode === 'create') {
+                modalTitle.textContent = 'Create Task';
+                taskForm.reset();
+                document.getElementById('taskId').value = '';
+                
+                // Set default dates
+                if (start) {
+                    document.getElementById('start').value = formatDateTime(start);
+                    document.getElementById('end').value = formatDateTime(end || start);
+                }
+                
+                deleteBtn.style.display = 'none';
+            } else {
+                modalTitle.textContent = 'Edit Task';
+                document.getElementById('taskId').value = event.id;
+                document.getElementById('title').value = event.title;
+                document.getElementById('description').value = event.extendedProps.description || '';
+                document.getElementById('start').value = formatDateTime(event.start);
+                document.getElementById('end').value = formatDateTime(event.end || event.start);
+                document.getElementById('color').value = event.backgroundColor || '#3788d8';
+                
+                // Set tags
+                const tags = event.extendedProps.tags || [];
+                document.querySelectorAll('.tag-checkbox input').forEach(checkbox => {
+                    checkbox.checked = tags.includes(checkbox.value);
+                });
+                
+                deleteBtn.style.display = 'inline-block';
+            }
+        }
+        
+        // Close modal
+        function closeModal() {
+            modal.style.display = 'none';
+            taskForm.reset();
+        }
+        
+        // Format date for datetime-local input
+        function formatDateTime(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        // Handle form submission
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const taskId = document.getElementById('taskId').value;
+            const taskData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                start: new Date(document.getElementById('start').value),
+                end: new Date(document.getElementById('end').value),
+                color: document.getElementById('color').value,
+                tags: Array.from(document.querySelectorAll('.tag-checkbox input:checked')).map(cb => cb.value)
+            };
+            
+            try {
+                let response;
+                if (taskId) {
+                    // Update existing task
+                    response = await fetch(`${API_URL}/${taskId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(taskData)
+                    });
+                } else {
+                    // Create new task
+                    response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(taskData)
+                    });
+                }
+                
+                if (response.ok) {
+                    calendar.refetchEvents();
+                    closeModal();
+                } else {
+                    alert('Error saving task');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error saving task');
+            }
+        });
+        
+        // Handle delete button
+        deleteBtn.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to delete this task?')) {
+                const taskId = document.getElementById('taskId').value;
+                
+                try {
+                    const response = await fetch(`${API_URL}/${taskId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        calendar.refetchEvents();
+                        closeModal();
+                    } else {
+                        alert('Error deleting task');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error deleting task');
+                }
+            }
+        });
+        
+        // Update task when dragged/resized
+        async function updateTaskDates(event) {
+            const taskData = {
+                start: event.start,
+                end: event.end || event.start
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/${event.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(taskData)
+                });
+                
+                if (!response.ok) {
+                    alert('Error updating task');
+                    calendar.refetchEvents();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating task');
+                calendar.refetchEvents();
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        
+        // Close modal when clicking X
+        closeBtn.onclick = function() {
+            closeModal();
+        }
+    </script>
+</body>
+</html>
