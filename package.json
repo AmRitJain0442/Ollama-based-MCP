@@ -6,13 +6,18 @@
     "start": "node backend/server.js",
     "mcp": "node mcp-server/mcp-server.js",
     "client": "node mcp-ollama-client.js",
+    "client-safe": "node mcp-ollama-client.js",
+    "demo-validation": "node demo-validation.js",
+    "test-memory": "node test-memory.js",
     "dev": "concurrently \"npm run start\" \"npm run mcp\""
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^7.0.0",
-    "cors": "^2.8.5",
+    "@langchain/core": "^0.3.61",
     "axios": "^1.4.0",
-    "concurrently": "^8.0.0"
+    "concurrently": "^8.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "langchain": "^0.3.29",
+    "mongoose": "^7.0.0"
   }
 }
